@@ -11,7 +11,7 @@
 
 :UMBA_TOOLS_VAR_IS_SET
 
-@call "%~dp0\.bat\setup_out_pp_root_paths.bat"
+@call "%~dp0\.bat\setup_out_root_paths.bat"
 
 @if not exist "%UMBA_TOOLS%\bin"    mkdir "%UMBA_TOOLS%\bin"
 @if not exist "%UMBA_TOOLS%\conf"   mkdir "%UMBA_TOOLS%\conf"
