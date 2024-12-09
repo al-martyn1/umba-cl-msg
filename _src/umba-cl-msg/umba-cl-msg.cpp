@@ -133,7 +133,7 @@ char getPair(char ch)
         case '}': return '{';
         case '[': return ']';
         case ']': return '[';
-        return ch;
+        default : return ch ;
     }
 }
 
@@ -142,11 +142,11 @@ bool isOpenChar(char ch)
 {
     switch(ch)
     {
-        case '<': return true;
-        case '(': return true;
-        case '{': return true;
-        case '[': return true;
-        return false;
+        case '<': return true ;
+        case '(': return true ;
+        case '{': return true ;
+        case '[': return true ;
+        default : return false;
     }
 }
 
@@ -155,11 +155,11 @@ bool isCloseChar(char ch)
 {
     switch(ch)
     {
-        case '>': return true;
-        case ')': return true;
-        case '}': return true;
-        case ']': return true;
-        return false;
+        case '>': return true ;
+        case ')': return true ;
+        case '}': return true ;
+        case ']': return true ;
+        default : return false;
     }
 }
 
@@ -185,15 +185,22 @@ struct Record
     , args() 
     {}
 
-    explicit Record(char ch)
+    // explicit Record(char ch)
+    // : prefix()
+    // , suffix()
+    // , cBrace(ch)
+    // , args() 
+    // {}
+
+    explicit Record(const std::vector<Record> &a)
     : prefix()
     , suffix()
-    , cBrace(ch)
-    , args() 
+    , cBrace()
+    , args(a) 
     {}
 
     UMBA_RULE_OF_FIVE_COPY(Record, default, default);
-    UMBA_RULE_OF_FIVE_MOCE(Record, default, default);
+    UMBA_RULE_OF_FIVE_MOVE(Record, default, default);
 
     void append(char ch)
     {
@@ -203,6 +210,10 @@ struct Record
             suffix.append(1, ch);
     }
 
+    bool isSuffixMode() const
+    {
+        return cBrace!=0;
+    }
 
     int compare(const Record &other) const
     {
@@ -234,7 +245,145 @@ struct Record
 
     UMBA_IMPLEMENT_MEMBER_RELOPS(Record)
 
+    void trim()
+    {
+        umba::string::trim(prefix);
+        umba::string::trim(suffix);
+        for(auto &a : args)
+            a.trim();
+    }
+
+    Record trimCopy() const
+    {
+        Record r = *this;
+        r.trim();
+        return r;
+    }
+
+    // std::string           prefix;
+    // std::string           suffix;
+    // char                  cBrace = 0; // Открывающая
+    // std::vector<Record>   args;
+
+    #if 0
+    template<typename StreamType>
+    StreamType& print(StreamType &oss, std::size_t indendBase=0) const
+    {
+        std::size_t indend = prefix.size();
+        oss << prefix;
+
+        if (cBrace!=0)
+            oss <<std::string(1, cBrace);
+
+        std::vector<Record>::const_iterator it = args.begin();
+        if (it!=args.end())
+        {
+            oss << " ";
+            it->print(oss, indendBase+indend);
+            ++it;
+        }
+
+        for(; it!=args.end(); ++it)
+        {
+            oss << "\n" << std::string(indendBase+indend+1, ' ') << ", ";
+            it->print(oss, indendBase+indend+2);
+        }
+
+        // if (cBrace!=0)
+        //     oss << std::string(indendBase+indend, ' ') << " " << std::string(1, getPair(cBrace));
+
+        return oss;
+    }
+    #endif
+
+    #if 0
+    template<typename StreamType>
+    StreamType& print(StreamType &oss, std::size_t indendBase=0) const
+    {
+        std::size_t indend = 4; // prefix.size();
+        oss << prefix;
+
+        if (cBrace!=0)
+        {
+            oss << "\n" << std::string(indendBase+indend+1, ' ') << std::string(1, cBrace) << " ";
+        }
+
+        std::vector<Record>::const_iterator it = args.begin();
+        if (it!=args.end())
+        {
+            it->print(oss, indendBase+indend);
+            ++it;
+        }
+
+        for(; it!=args.end(); ++it)
+        {
+            // if (cBrace==0)
+            // {
+            //     oss << "\n" << std::string(indendBase+indend+1, ' ');
+            //     it->print(oss, indendBase+indend);
+            // }
+            // else
+            {
+                oss << "\n" << std::string(indendBase+indend+1, ' ') << ", ";
+                it->print(oss, indendBase+indend);
+            }
+        }
+
+        // if (cBrace!=0)
+        //     oss << std::string(indendBase+indend, ' ') << " " << std::string(1, getPair(cBrace));
+
+        return oss;
+    }
+    #endif
+
+    template<typename StreamType>
+    StreamType& print(StreamType &oss, std::size_t indendBase=0) const
+    {
+        std::size_t indend = 4; // prefix.size();
+        oss << prefix;
+
+        if (cBrace!=0)
+        {
+            oss << "\n" << std::string(indendBase+indend, ' ') << std::string(1, cBrace) << " ";
+        }
+
+        std::vector<Record>::const_iterator it = args.begin();
+        if (it!=args.end())
+        {
+            it->print(oss, indendBase+indend);
+            ++it;
+        }
+
+        for(; it!=args.end(); ++it)
+        {
+            // if (cBrace==0)
+            // {
+            //     oss << "\n" << std::string(indendBase+indend+1, ' ');
+            //     it->print(oss, indendBase+indend);
+            // }
+            // else
+            {
+                oss << "\n" << std::string(indendBase+indend, ' ') << ", ";
+                it->print(oss, indendBase+indend);
+            }
+        }
+
+        // if (cBrace!=0)
+        //     oss << std::string(indendBase+indend, ' ') << " " << std::string(1, getPair(cBrace));
+
+        return oss;
+    }
+
+
+
 }; // struct Record
+
+
+
+
+
+
+//template <typename StringType, typename TrimPred> inline StringType trim_copy(StringType s, const TrimPred &pred)
 
 
 struct RecordStack
@@ -279,14 +428,40 @@ protected:
 template<typename IterType>
 Record parseClMessage(IterType b, IterType e)
 {
+    std::vector<Record> records;
+
     RecordStack stack;
     stack.push(Record());
 
     auto checkStack = [&]()
     {
         if (stack.empty())
-            throw std::runtime_error("Something goes wrong");
-    }
+            throw std::runtime_error("Something goes wrong (1)");
+    };
+
+    auto checkStackSize1 = [&]()
+    {
+        if (stack.size()>1)
+            throw std::runtime_error("Something goes wrong (2)");
+    };
+
+    auto finalizeCurrentStack = [&]()
+    {
+        while(stack.size()>1)
+        {
+            auto t = stack.top();
+            stack.pop();
+            stack.top().args.emplace_back(t);
+        }
+         
+        if (!stack.empty())
+        {
+            records.emplace_back(stack.top());
+        }
+    
+    };
+
+
 
     for(; b!=e; ++b)
     {
@@ -295,36 +470,82 @@ Record parseClMessage(IterType b, IterType e)
         if (isOpenChar(ch))
         {
             checkStack();
-            stack.top().cBrace = ch;
-            stack.push(Record());
+
+            if (stack.top().isSuffixMode())
+            {
+                checkStackSize1();
+                records.emplace_back(stack.top());
+                stack.pop();
+                stack.push(Record());
+                stack.top().cBrace = ch;
+                stack.push(Record());
+            }
+            else
+            {
+                stack.top().cBrace = ch;
+                stack.push(Record());
+            }
+
             continue;
         }
 
         if (ch==',')
         {
             checkStack();
+
             auto t = stack.top();
             stack.pop();
 
-            checkStack();
-            stack.top().args.emplace_back(t);
+            if (stack.empty())
+                records.emplace_back(t);
+            else
+                stack.top().args.emplace_back(t);
 
             stack.push(Record());
 
             continue;
         }
 
+        checkStack();
+        if (getPair(ch)==stack.top().cBrace) // Закрываем
+        {
+            checkStack();
 
-        // bool isOpenChar(char ch)
-        // char getPair(char ch)
+            auto t = stack.top();
+            stack.pop();
+
+            if (stack.empty())
+                records.emplace_back(t);
+            else
+                stack.top().args.emplace_back(t);
+
+            // Как и с запятой, только ничего нового на стек не кладём
+
+            continue;
+        }
+
+        if (ch=='\'')
+        {
+            finalizeCurrentStack();
+            stack.push(Record());
+        }
+
+        checkStack();
+
+        stack.top().append(ch);
+
     }
+
+    finalizeCurrentStack();
+
+    return Record(records).trimCopy();
 }
 
 
 inline
-Record parseClMessage(const std::string &srt)
+Record parseClMessage(const std::string &str)
 {
-    return parseClMessage(srt.begin(), str.end());
+    return parseClMessage(str.begin(), str.end());
 }
 
 
@@ -336,7 +557,7 @@ UMBA_APP_MAIN()
     // std::cout << "Hello world\n";
     try
     {
-        return safeMain(argc, argv);
+        return unsafeMain(argc, argv);
     }
     catch(const std::exception& e)
     {
@@ -355,23 +576,35 @@ UMBA_APP_MAIN()
 
 int unsafeMain(int argc, char* argv[])
 {
+
     std::string text;
 
-    std::string line;
-    while (std::getline(std::cin, line))
+    if (umba::isDebuggerPresent())
     {
-        // std::cout << line << std::endl;
-        if (!text.empty())
+        text = 
+        #include "msg.h"
+    }
+    else
+    {
+        std::string line;
+        while (std::getline(std::cin, line))
         {
-            text.append(1, '\n');
+            // std::cout << line << std::endl;
+            if (!text.empty())
+            {
+                text.append(1, '\n');
+            }
+    
+            text.append(line);
         }
-
-        text.append(line);
+    
+        text.append(1, '\n');
     }
 
-    text.append(1, '\n');
 
-    std::cout << text;
+    Record r = parseClMessage(text);
+
+    r.print(std::cout);
 
     return 0;
 
