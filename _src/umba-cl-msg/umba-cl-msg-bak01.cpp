@@ -122,7 +122,7 @@
 
 namespace umba
 {
-    // namespace string = string_plus;
+    namespace string = string_plus;
 }
 
 
@@ -211,11 +211,6 @@ struct Record
     bool empty() const
     {
         return prefix.empty() && suffix.empty() && args.empty() && cBrace==0;
-    }
-
-    void clear()
-    {
-        *this = Record();
     }
 
     void append(char ch)
@@ -357,17 +352,17 @@ struct Record
     {
         std::size_t indend = 4; // prefix.size();
         oss 
-            // << "[" 
+            << "[" 
             << prefix
-            // << "]"
+            << "]"
             ;
 
         if (cBrace!=0)
         {
             oss << "\n" << std::string(indendBase+indend, ' ') 
-                // << "[" 
+                << "[" 
                 << std::string(1, cBrace) 
-                // << "]" 
+                << "]" 
                 << " "
                 ;
         }
@@ -406,17 +401,17 @@ struct Record
             }
 
             oss 
-                // << "[" 
+                << "[" 
                 << std::string(1, getPair(cBrace)) 
-                // << "]" 
+                << "]" 
                 << " "
                 ;
         }
 
         oss 
-            // << "[" 
+            << "[" 
             << suffix 
-            // << "]"
+            << "]"
             ;
 
         // if (cBrace!=0)
@@ -519,21 +514,21 @@ template<typename IterType>
 Record parseClMessage(IterType b, IterType e)
 {
     std::vector<Record> records;
-    Record              curRecord;
-    RecordStack         stack;
 
+    RecordStack stack;
+    stack.push(Record());
 
-    // auto checkStack = [&]()
-    // {
-    //     if (stack.empty())
-    //         throw std::runtime_error("Something goes wrong (1)");
-    // };
-    //  
-    // auto checkStackSize1 = [&]()
-    // {
-    //     if (stack.size()>1)
-    //         throw std::runtime_error("Something goes wrong (2)");
-    // };
+    auto checkStack = [&]()
+    {
+        if (stack.empty())
+            throw std::runtime_error("Something goes wrong (1)");
+    };
+
+    auto checkStackSize1 = [&]()
+    {
+        if (stack.size()>1)
+            throw std::runtime_error("Something goes wrong (2)");
+    };
 
     auto finalizeCurrentStack = [&]()
     {
@@ -544,10 +539,6 @@ Record parseClMessage(IterType b, IterType e)
             if (!r.empty())
                 stack.top().args.emplace_back(r);
         }
-
-        if (!curRecord.empty())
-            records.emplace_back(curRecord);
-        curRecord.clear();
          
         if (!stack.empty())
         {
@@ -562,30 +553,29 @@ Record parseClMessage(IterType b, IterType e)
 
     for(; b!=e; ++b)
     {
-        // const char *pRest = &*b; // Для отладки, содержимое итераторов VSCode уродски показывает
+        const char *pRest = &*b; // Для отладки, содержимое итераторов VSCode уродски показывает
 
         auto ch = *b;
 
         if (isOpenChar(ch))
         {
-            // у нас всё клалось в "текущую" Record
+            checkStack();
 
-            if (curRecord.isSuffixMode()) // а что, если в текущей записи уже были скобки?
+            auto &stackTop = stack.top(); // Для отладки, небезопасно
+
+            if (stack.top().isSuffixMode())
             {
-                // скобки уже были
-                // закидываем её либо как аргумент в вершине стека, либо в список records
-                if (stack.empty())
-                    records.emplace_back(curRecord);
-                else
-                    stack.top().args.emplace_back(curRecord);
-
-                curRecord.clear();
+                checkStackSize1();
+                records.emplace_back(stack.top());
+                stack.pop();
+                stack.push(Record());
+                stack.top().cBrace = ch;
+                stack.push(Record());
             }
-            else // скобок ещё не было
+            else
             {
-                curRecord.cBrace = ch; // помечаем открывающей скобкой
-                stack.push(curRecord); // на стек
-                curRecord.clear();     // текущую запись очищаем
+                stack.top().cBrace = ch;
+                stack.push(Record());
             }
 
             continue;
@@ -595,49 +585,63 @@ Record parseClMessage(IterType b, IterType e)
 
         if (ch==',')
         {
-            if (stack.empty())
-                records.emplace_back(curRecord);
-            else
-                stack.top().args.emplace_back(curRecord);
+            checkStack();
 
-            curRecord.clear();
+            auto t = stack.top();
+            stack.pop();
+
+            if (stack.empty())
+                records.emplace_back(t);
+            else
+                stack.top().args.emplace_back(t);
+
+            stack.push(Record());
 
             continue;
 
         } // if (ch==',')
 
 
-        if (!stack.empty() && getPair(ch)==stack.top().cBrace) // Если закрывающая скобка была без открывающей - не обрабатываем как спец символ
+        checkStack();
+        char stackTopCbrace = stack.top().cBrace;
+        if (getPair(ch)==stackTopCbrace) // Закрываем
         {
-            // Парная закрывающая скобка
-            if (!curRecord.empty())
-                stack.top().args.emplace_back(curRecord);
-            // curRecord.clear();
-            curRecord = stack.top();
+            checkStack();
+
+            auto t = stack.top();
             stack.pop();
+
+            if (stack.empty())
+                records.emplace_back(t);
+            else
+                stack.top().args.emplace_back(t);
+
+            // Как и с запятой, только ничего нового на стек не кладём
 
             continue;
 
-        } // if (!stack.empty() && getPair(ch)==stack.top().cBrace)
+        } // if (getPair(ch)==stackTopCbrace)
 
 
-        // if (ch=='>')
-        // {
-        //     // UMBA_DEBUGBREAK();
-        //     continue;
-        //  
-        // } // if (ch=='>')
+        if (ch=='>')
+        {
+            // UMBA_DEBUGBREAK();
+            continue;
+
+        } // if (ch=='>')
 
 
         if (ch=='\'')
         {
             finalizeCurrentStack();
+            stack.push(Record());
             continue;
 
         } // if (ch=='\'')
 
+        checkStack();
 
-        curRecord.append(ch);
+        stack.top().append(ch);
 
     } // for(; b!=e; ++b)
 
