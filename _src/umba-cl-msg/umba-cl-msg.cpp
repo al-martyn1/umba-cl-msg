@@ -103,6 +103,7 @@
 #include "umba/macros.h"
 #include "umba/scanners.h"
 #include "umba/relops.h"
+#include "umba/debug_helpers.h"
 #include "umba/rule_of_five.h"
 
 #include "marty_cpp/marty_cpp.h"
@@ -118,6 +119,11 @@
 #include "umba/cli_tool_helpers.h"
 #include "umba/time_service.h"
 #include "umba/shellapi.h"
+
+namespace umba
+{
+    namespace string = string_plus;
+}
 
 
 inline
@@ -201,6 +207,11 @@ struct Record
 
     UMBA_RULE_OF_FIVE_COPY(Record, default, default);
     UMBA_RULE_OF_FIVE_MOVE(Record, default, default);
+
+    bool empty() const
+    {
+        return prefix.empty() && suffix.empty() && args.empty() && cBrace==0;
+    }
 
     void append(char ch)
     {
@@ -340,11 +351,20 @@ struct Record
     StreamType& print(StreamType &oss, std::size_t indendBase=0) const
     {
         std::size_t indend = 4; // prefix.size();
-        oss << prefix;
+        oss 
+            << "[" 
+            << prefix
+            << "]"
+            ;
 
         if (cBrace!=0)
         {
-            oss << "\n" << std::string(indendBase+indend, ' ') << std::string(1, cBrace) << " ";
+            oss << "\n" << std::string(indendBase+indend, ' ') 
+                << "[" 
+                << std::string(1, cBrace) 
+                << "]" 
+                << " "
+                ;
         }
 
         std::vector<Record>::const_iterator it = args.begin();
@@ -368,6 +388,32 @@ struct Record
             }
         }
 
+
+        if (cBrace!=0)
+        {
+            if (args.size()>1)
+            {
+                oss << "\n" << std::string(indendBase+indend, ' ');
+            }
+            else
+            {
+                oss << " ";
+            }
+
+            oss 
+                << "[" 
+                << std::string(1, getPair(cBrace)) 
+                << "]" 
+                << " "
+                ;
+        }
+
+        oss 
+            << "[" 
+            << suffix 
+            << "]"
+            ;
+
         // if (cBrace!=0)
         //     oss << std::string(indendBase+indend, ' ') << " " << std::string(1, getPair(cBrace));
 
@@ -385,10 +431,15 @@ struct Record
 
 //template <typename StringType, typename TrimPred> inline StringType trim_copy(StringType s, const TrimPred &pred)
 
+#define RECORD_STACK_USE_VECTOR
 
 struct RecordStack
 {
+#if defined(RECORD_STACK_USE_VECTOR)
+    using Container = std::vector<Record>;
+#else
     using Container = std::stack<Record>;
+#endif
 
     using container_type   = Container                          ;
     using value_type       = typename Container::value_type     ;
@@ -396,14 +447,34 @@ struct RecordStack
     using reference        = typename Container::reference      ;
     using const_reference  = typename Container::const_reference;
 
-    reference top()             { return m_stack.top(); }
-    const_reference top() const { return m_stack.top(); }
-    bool empty() const          { return m_stack.empty(); }
-    size_type size() const      { return m_stack.size(); }
+#if defined(RECORD_STACK_USE_VECTOR)
+
+    reference top()                      { return m_stack.back(); }
+    const_reference top() const          { return m_stack.back(); }
+    bool empty() const                   { return m_stack.empty();}
+    size_type size() const               { return m_stack.size(); }
+	
+    void push( const value_type& value ) { m_stack.emplace_back(value); }
+    void push( value_type&& value )      { m_stack.emplace_back(std::forward<value_type>(value)); }
+    void pop()                           { m_stack.pop_back(); }
+
+    void clear()                         { m_stack.clear(); }
+
+#else
+
+    reference top()                      { return m_stack.top();  }
+    const_reference top() const          { return m_stack.top();  }
+    bool empty() const                   { return m_stack.empty();}
+    size_type size() const               { return m_stack.size(); }
 	
     void push( const value_type& value ) { m_stack.push(value); }
     void push( value_type&& value )      { m_stack.push(std::forward<value_type>(value)); }
     void pop()                           { m_stack.pop(); }
+
+    void clear()                         { while(!empty()) pop(); }
+
+#endif
+
 	
 
 protected:
@@ -449,27 +520,34 @@ Record parseClMessage(IterType b, IterType e)
     {
         while(stack.size()>1)
         {
-            auto t = stack.top();
+            auto r = stack.top().trimCopy();
             stack.pop();
-            stack.top().args.emplace_back(t);
+            if (!r.empty())
+                stack.top().args.emplace_back(r);
         }
          
         if (!stack.empty())
         {
-            records.emplace_back(stack.top());
+            auto r = stack.top().trimCopy();
+            if (!r.empty())
+                records.emplace_back(r);
+            //stack.pop();
+            stack.clear();
         }
-    
     };
-
 
 
     for(; b!=e; ++b)
     {
+        const char *pRest = &*b; // Для отладки, содержимое итераторов VSCode уродски показывает
+
         auto ch = *b;
 
         if (isOpenChar(ch))
         {
             checkStack();
+
+            auto &stackTop = stack.top(); // Для отладки, небезопасно
 
             if (stack.top().isSuffixMode())
             {
@@ -507,7 +585,8 @@ Record parseClMessage(IterType b, IterType e)
         }
 
         checkStack();
-        if (getPair(ch)==stack.top().cBrace) // Закрываем
+        char stackTopCbrace = stack.top().cBrace;
+        if (getPair(ch)==stackTopCbrace) // Закрываем
         {
             checkStack();
 
@@ -524,10 +603,17 @@ Record parseClMessage(IterType b, IterType e)
             continue;
         }
 
+        if (ch=='>')
+        {
+            UMBA_DEBUGBREAK();
+            continue;
+        }
+
         if (ch=='\'')
         {
             finalizeCurrentStack();
             stack.push(Record());
+            continue;
         }
 
         checkStack();
@@ -582,7 +668,7 @@ int unsafeMain(int argc, char* argv[])
     if (umba::isDebuggerPresent())
     {
         text = 
-        #include "msg.h"
+        #include "msg4.h"
     }
     else
     {
