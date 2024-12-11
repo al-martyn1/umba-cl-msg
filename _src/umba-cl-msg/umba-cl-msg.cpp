@@ -183,6 +183,7 @@ struct Record
     std::string           suffix;
     char                  cBrace = 0; // Открывающая
     std::vector<Record>   args;
+    bool                  quoted = false;
 
     Record()
     : prefix()
@@ -265,8 +266,27 @@ struct Record
     {
         umba::string::trim(prefix);
         umba::string::trim(suffix);
+
+        std::vector<Record> argsCopy;
+
         for(auto &a : args)
+        {
             a.trim();
+            if (!a.empty())
+            {
+                argsCopy.emplace_back(a);
+            }
+        }
+
+        swap(args, argsCopy);
+
+        auto argsSize = args.size();
+        if (prefix.empty() && suffix.empty() && cBrace==0 && argsSize==1)
+        {
+            Record tmp = args.front();
+            *this = tmp;
+        }
+
     }
 
     Record trimCopy() const
@@ -364,9 +384,14 @@ struct Record
 
         if (cBrace!=0)
         {
-            oss << "\n" << std::string(indendBase+indend, ' ') 
+            if (args.size()>1)
+                oss << "\n" << std::string(indendBase+indend, ' ');
+            // else
+            //     oss << " ";
+
                 // << "[" 
-                << std::string(1, cBrace) 
+
+            oss << std::string(1, cBrace) 
                 // << "]" 
                 << " "
                 ;
@@ -388,8 +413,16 @@ struct Record
             // }
             // else
             {
-                oss << "\n" << std::string(indendBase+indend, ' ') << ", ";
-                it->print(oss, indendBase+indend);
+                oss << "\n";
+                //if (it->quoted)
+                {
+                    oss << std::string(indendBase+indend, ' ') << ", ";
+                    it->print(oss, indendBase+indend);
+                }
+                // else
+                // {
+                //     it->print(oss, indendBase);
+                // }
             }
         }
 
@@ -397,13 +430,9 @@ struct Record
         if (cBrace!=0)
         {
             if (args.size()>1)
-            {
                 oss << "\n" << std::string(indendBase+indend, ' ');
-            }
             else
-            {
                 oss << " ";
-            }
 
             oss 
                 // << "[" 
@@ -521,6 +550,7 @@ Record parseClMessage(IterType b, IterType e)
     std::vector<Record> records;
     Record              curRecord;
     RecordStack         stack;
+    std::size_t         quoteCount = 0;
 
 
     // auto checkStack = [&]()
@@ -541,9 +571,15 @@ Record parseClMessage(IterType b, IterType e)
         {
             auto r = stack.top().trimCopy();
             stack.pop();
+            // if (quoteCount&1)
+            //     r.quoted = true;
             if (!r.empty())
                 stack.top().args.emplace_back(r);
         }
+
+
+        if (quoteCount&1)
+            curRecord.quoted = true;
 
         if (!curRecord.empty())
             records.emplace_back(curRecord);
@@ -631,6 +667,7 @@ Record parseClMessage(IterType b, IterType e)
 
         if (ch=='\'')
         {
+            ++quoteCount;
             finalizeCurrentStack();
             continue;
 
