@@ -6,3 +6,5 @@
 "%SLN_EXE%" < msg3.txt > msg3.cpp
 "%SLN_EXE%" < msg4.txt > msg4.cpp
 "%SLN_EXE%" < msg5.txt > msg5.cpp
+"%SLN_EXE%" < msg6.txt > msg6.cpp
+"%SLN_EXE%" < msg7.txt > msg7.cpp

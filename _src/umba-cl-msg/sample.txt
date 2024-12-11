@@ -1,0 +1,60 @@
+Пример сообщения
+
+'_Ret std::_Func_class< _Ret
+                      , umba::tokenizer::TokenizerFunctionHandlers< CharType
+                                                                  , UserDataType
+                                                                  , CharClassTableType
+                                                                  , TrieVectorType
+                                                                  , StringType
+                                                                  , MessagesStringType
+                                                                  , InputIteratorType
+                                                                  , umba::iterator::TextIteratorTraits< InputIteratorType >
+                                                                  > &
+                      , bool
+                      , umba::tokenizer::payload_type
+                      , InputIteratorType &
+                      , InputIteratorType &
+                      , std::variant< umba::tokenizer::TokenizerBaseImpl< umba::tokenizer::TokenizerFunctionHandlers< CharType
+                                                                                                                    , UserDataType
+                                                                                                                    , CharClassTableType
+                                                                                                                    , TrieVectorType
+                                                                                                                    , StringType
+                                                                                                                    , MessagesStringType
+                                                                                                                    , InputIteratorType
+                                                                                                                    , umba::iterator::TextIteratorTraits< InputIteratorType >
+                                                                                                                    >
+                                                                        , CharType
+                                                                        , UserDataType
+                                                                        , CharClassTableType
+                                                                        , TrieVectorType
+                                                                        , StringType
+                                                                        , MessagesStringType
+                                                                        , InputIteratorType
+                                                                        , InputIteratorTraits
+                                                                        >::EmptyData
+                                    , umba::tokenizer::TokenizerBaseImpl< umba::tokenizer::TokenizerFunctionHandlers< CharType
+                                                                                                                    , UserDataType
+                                                                                                                    , CharClassTableType
+                                                                                                                    , TrieVectorType
+                                                                                                                    , StringType
+                                                                                                                    , MessagesStringType
+                                                                                                                    , InputIteratorType
+                                                                                                                    , InputIteratorTraits
+                                                                                                                    >
+                                                                        , CharType
+                                                                        , UserDataType
+                                                                        , CharClassTableType
+                                                                        , TrieVectorType
+                                                                        , StringType
+                                                                        , MessagesStringType
+                                                                        , InputIteratorType
+                                                                        , InputIteratorTraits
+                                                                        >::CommentData
+                                    ,umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::IdentifierData,umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::StringLiteralData,umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::IntegerNumericLiteralData,umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::FloatNumericLiteralData> &,std::basic_string<char,std::char_traits<char>,std::allocator<char>> &>::operator ()(umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits> &,bool,umba::tokenizer::payload_type,InputIteratorType &,InputIteratorType &,std::variant<umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::EmptyData,umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::CommentData,umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::IdentifierData,umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::StringLiteralData,umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::IntegerNumericLiteralData,umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::FloatNumericLiteralData> &,std::basic_string<char,std::char_traits<char>,std::allocator<char>> &) const': cannot convert argument 6 from 'umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,umba::iterator::TextIteratorTraits<InputIteratorType>>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::EmptyData' to 'std::variant<umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,umba::iterator::TextIteratorTraits<InputIteratorType>>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::EmptyData,umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::CommentData,umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::IdentifierData,umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::StringLiteralData,umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::IntegerNumericLiteralData,umba::tokenizer::TokenizerBaseImpl<umba::tokenizer::TokenizerFunctionHandlers<CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>,CharType,UserDataType,CharClassTableType,TrieVectorType,StringType,MessagesStringType,InputIteratorType,InputIteratorTraits>::FloatNumericLiteralData> &'	umba-brief-scanner	F:\_github\umba-tools\umba-brief-scanner\_libs\umba_tokenizer\inc\umba\tokenizer\token_filters.h	767	
+
+
+Это "скобочные" выражения вида
+
+  ПРЕФИКС <[АРГУМЕНТ,[АРГУМЕНТ,...]]> СУФФИКС
+
+где АРГУМЕНТ - также может быть скобочным выражением
