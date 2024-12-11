@@ -185,12 +185,12 @@ struct Record
     std::vector<Record>   args;
     bool                  quoted = false;
 
-    Record()
-    : prefix()
-    , suffix()
-    , cBrace(0)
-    , args() 
-    {}
+    Record() {}
+    // : prefix()
+    // , suffix()
+    // , cBrace(0)
+    // , args() 
+    // {}
 
     // explicit Record(char ch)
     // : prefix()
@@ -198,6 +198,10 @@ struct Record
     // , cBrace(ch)
     // , args() 
     // {}
+
+    explicit Record(bool q)
+    : quoted(q) 
+    {}
 
     explicit Record(const std::vector<Record> &a)
     : prefix()
@@ -214,9 +218,10 @@ struct Record
         return prefix.empty() && suffix.empty() && args.empty() && cBrace==0;
     }
 
-    void clear()
+    void clear(bool q)
     {
         *this = Record();
+        quoted = q;
     }
 
     void append(char ch)
@@ -414,15 +419,15 @@ struct Record
             // else
             {
                 oss << "\n";
-                //if (it->quoted)
+                if (it->quoted)
                 {
                     oss << std::string(indendBase+indend, ' ') << ", ";
                     it->print(oss, indendBase+indend);
                 }
-                // else
-                // {
-                //     it->print(oss, indendBase);
-                // }
+                else
+                {
+                    it->print(oss, indendBase);
+                }
             }
         }
 
@@ -552,6 +557,11 @@ Record parseClMessage(IterType b, IterType e)
     RecordStack         stack;
     std::size_t         quoteCount = 0;
 
+    auto isQuoted = [&]()
+    {
+        return (quoteCount&1) ? true : false;
+    };
+
 
     // auto checkStack = [&]()
     // {
@@ -578,12 +588,9 @@ Record parseClMessage(IterType b, IterType e)
         }
 
 
-        if (quoteCount&1)
-            curRecord.quoted = true;
-
         if (!curRecord.empty())
             records.emplace_back(curRecord);
-        curRecord.clear();
+        curRecord.clear(isQuoted());
          
         if (!stack.empty())
         {
@@ -598,7 +605,7 @@ Record parseClMessage(IterType b, IterType e)
 
     for(; b!=e; ++b)
     {
-        // const char *pRest = &*b; // Для отладки, содержимое итераторов VSCode уродски показывает
+        const char *pRest = &*b; // Для отладки, содержимое итераторов VSCode уродски показывает
 
         auto ch = *b;
 
@@ -615,13 +622,13 @@ Record parseClMessage(IterType b, IterType e)
                 else
                     stack.top().args.emplace_back(curRecord);
 
-                curRecord.clear();
+                curRecord.clear(isQuoted());
             }
             else // скобок ещё не было
             {
                 curRecord.cBrace = ch; // помечаем открывающей скобкой
                 stack.push(curRecord); // на стек
-                curRecord.clear();     // текущую запись очищаем
+                curRecord.clear(isQuoted());     // текущую запись очищаем
             }
 
             continue;
@@ -636,7 +643,7 @@ Record parseClMessage(IterType b, IterType e)
             else
                 stack.top().args.emplace_back(curRecord);
 
-            curRecord.clear();
+            curRecord.clear(isQuoted());
 
             continue;
 
