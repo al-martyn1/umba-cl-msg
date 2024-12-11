@@ -1,0 +1,87 @@
+.gdbinit
+
+Для GDB нужна переменная HOME.
+Создаём HOME=%HOMEDRIVE%\%HOMEPATH%
+VSCode на отрез не видел переменную, пришлось перезагрузить компьютер.
+
+CMake Kits находятся так:
+Ctrl+Shift+P
+`Edit CMake Kits`
+`CMake: Edit User-Local CMake Kits`
+`C:\Users\%USERNAME%\AppData\Local\CMakeTools\cmake-tools-kits.json`
+
+
+VSCode - выполнить команду GDB - префикс -exec (https://stackoverflow.com/questions/65049467/how-to-force-debug-console-in-vscode-to-accept-gdb-commands)
+Например, в доках написано:
+  show environment HOME
+Тогда в VSCode Debug Console пишем 
+  -exec show environment HOME
+
+Или для `show auto-load safe-path`
+  -exec show auto-load safe-path
+
+-exec shell echo $HOME
+
+-exec shell pwd
+
+Кладём в `C:\Users\%USERNAME%` файл `.gdbinit`
+
+Для теста прописываем в него команду
+```
+add-auto-load-safe-path C:\work\projects\.gdbinit
+```
+
+Перезапускаем VSCode, запускаем отладку, в `Debug Console` пишем `-exec show auto-load safe-path` - убеждаемся, что наш путь там присутствует.
+
+
+
+Debugging with GDB using VSCode - https://ardupilot.org/dev/docs/debugging-with-gdb-using-vscode.html
+
+
+22.8.3 Security restriction for auto-loading - https://sourceware.org/gdb/current/onlinedocs/gdb.html/Auto_002dloading-safe-path.html
+
+How do I load .gdbinit on gdb startup? - https://stackoverflow.com/questions/15399265/how-do-i-load-gdbinit-on-gdb-startup
+
+Where to put .gdbinit in Windows? - https://stackoverflow.com/questions/51324228/where-to-put-gdbinit-in-windows
+
+
+STL Support Tools - https://sourceware.org/gdb/wiki/STLSupport
+
+Создаём папку C:\Users\%USERNAME%\AppData\Local\.gdb\support
+
+Переходим туда
+
+git init gcc
+cd gcc
+git remote add origin https://github.com/gcc-mirror/gcc.git
+git config core.sparseCheckout true
+
+echo "libstdc++-v3/python/libstdcxx/__init__.py"     > .git/info/sparse-checkout
+echo "libstdc++-v3/python/libstdcxx/v6/__init__.py" >> .git/info/sparse-checkout
+echo "libstdc++-v3/python/libstdcxx/v6/printers.py" >> .git/info/sparse-checkout
+echo "libstdc++-v3/python/libstdcxx/v6/xmethods.py" >> .git/info/sparse-checkout
+
+git fetch origin master
+git checkout master
+
+Sparse checkout - https://graphite.dev/guides/git-clone-single-file
+
+.gdbinit
+```
+python
+import sys
+sys.path.insert(0, 'C:/Users/mag/AppData/Local/.gdb/support/gcc/libstdc++-v3/python')
+from libstdcxx.v6.printers import register_libstdcxx_printers
+register_libstdcxx_printers (None)
+end
+```
+
+-exec info pretty-printer - noty found
+Pretty-Printer Commands - https://sourceware.org/gdb/current/onlinedocs/gdb.html/Pretty_002dPrinter-Commands.html
+
+https://sourceware.org/gdb/current/onlinedocs/gdb.html/Print-Settings.html#set-print-raw_002dvalues
+-exec show print pretty
+-exec set print pretty on
+-exec set print pretty off
+-exec print stack
+
