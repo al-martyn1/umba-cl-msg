@@ -36,25 +36,25 @@ void findAllNestedTypesIncHelper(const std::string &r, RecordStringCountersMap &
     ++countMap[r];
 }
 
-void findAllNestedTypes(const             Record  &r , RecordStringCountersMap &countMap);
-void findAllNestedTypes(const std::vector<Record> &vr, RecordStringCountersMap &countMap);
+void findAllNestedTypes(const             Record  &r , RecordStringCountersMap &countMap, bool cleanTypes=true);
+void findAllNestedTypes(const std::vector<Record> &vr, RecordStringCountersMap &countMap, bool cleanTypes=true);
 
 inline
-void findAllNestedTypes(const Record &r, RecordStringCountersMap &countMap)
+void findAllNestedTypes(const Record &r, RecordStringCountersMap &countMap, bool cleanTypes)
 {
     if (r.quoted)
-        findAllNestedTypesIncHelper(r.serialize(), countMap);
+        findAllNestedTypesIncHelper(r.serialize(!cleanTypes), countMap);
     for(auto && ar : r.args)
-        findAllNestedTypes(ar, countMap);
+        findAllNestedTypes(ar, countMap, cleanTypes);
 }
 
-void findAllNestedTypes(const std::vector<Record> &vr, RecordStringCountersMap &countMap)
+void findAllNestedTypes(const std::vector<Record> &vr, RecordStringCountersMap &countMap, bool cleanTypes)
 {
     for(auto && ar : vr)
     {
         if (ar.quoted)
         {
-            findAllNestedTypes(ar, countMap);
+            findAllNestedTypes(ar, countMap, cleanTypes);
         }
     }
 }
