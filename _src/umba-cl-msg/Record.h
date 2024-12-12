@@ -11,6 +11,7 @@
 struct Record
 {
     std::vector<std::string>  prefixModifiers;
+    std::vector<std::string>  psModifiers    ; // prefix-suffix modifiers
     std::vector<std::string>  suffixModifiers;
 
     std::string               prefix;
@@ -57,11 +58,53 @@ struct Record
         args   = r.args  ;
     }
 
+    bool hasBrace(char braceCh, bool checkSelf=true, bool checkArgs=true) const
+    {
+        if (isPairedChar(braceCh) && isCloseChar(braceCh))
+            braceCh = getPair(braceCh);
 
+        if (checkSelf)
+        {
+            if (cBrace==braceCh)
+                return true;
+        }
+
+        if (checkArgs)
+        {
+            for(auto &&a : args)
+            {
+                if (a.hasBrace(braceCh, true, checkArgs /* de facto - true */ ))
+                    return true;
+            }
+        }
+    }
+
+    bool needAutoSubst(std::size_t templateTypesMaxLen=48, std::size_t exactTypesMaxLen=48) const
+    {
+        if (hasBrace('(', true, true)) // выражения с круглыми скобками не оптимизируем
+            return false;
+
+        std::string cleanType = serializeCleanType();
+
+        if (hasBrace('<', true, true)) // шаблон?
+        {
+            // шаблон
+            if (cleanType.size()>templateTypesMaxLen)
+                return true;
+        }
+        else
+        {
+            // Пока нешаблонные типы не заменяем
+            // if (cleanType.size()>exactTypesMaxLen)
+            //     return true;
+        }
+
+        return true;
+    }
 
     bool empty() const
     {
-        return prefixModifiers.empty() && suffixModifiers.empty() && prefix.empty() && suffix.empty() && args.empty() && cBrace==0;
+        return prefixModifiers.empty() && psModifiers.empty() && suffixModifiers.empty() && prefix.empty() && suffix.empty() && args.empty() && cBrace==0;
     }
 
     void clear(bool q)
@@ -73,6 +116,7 @@ struct Record
     void clearModifiers()
     {
         prefixModifiers.clear();
+        psModifiers    .clear();
         suffixModifiers.clear();
     }
 
@@ -94,12 +138,19 @@ struct Record
         return umba::string::merge<std::string>(prefixModifiers, std::string() /* , [](auto s) { return s; } */ );
     }
 
+    std::string serializePrefixSuffixModifiers() const
+    {
+        return umba::string::merge<std::string>(psModifiers, std::string() /* , [](auto s) { return s; } */ );
+    }
+
     std::string serializeSuffixModifiers() const
     {
         return umba::string::merge<std::string>(suffixModifiers, std::string() /* , [](auto s) { return s; } */ );
     }
 
+
     //void extractModifiers(const std::unordered_set<std::string> &knownPrefixModifiers, const std::vector<std::string> &knownSuffixModifiers)
+    // psModifiers
     void extractModifiers(const TypeModifiers &typeModifiers)
     {
         umba::string::ltrim(prefix);
@@ -110,6 +161,24 @@ struct Record
             {
                 prefixModifiers.emplace_back(kpm);
                 umba::string::ltrim(prefix);
+            }
+        }
+
+
+        umba::string::rtrim(prefix);
+
+        for(auto && ksm : typeModifiers.suffixModifiers)
+        {
+            if (umba::string::ends_with_and_strip(prefix, ksm))
+            {
+                auto modifier = ksm;
+                if (!prefix.empty() && prefix.back()==' ')
+                {
+                    modifier.insert(0, 1, ' ');    // Добавляем к модифиатору спереди
+                    prefix.erase(prefix.size()-1); // Удаляем у префикса сзади
+                }
+                psModifiers.emplace_back(modifier);
+                umba::string::rtrim(prefix);
             }
         }
 
@@ -130,6 +199,7 @@ struct Record
                 umba::string::rtrim(suffix);
             }
         }
+
 
         for(auto & a: args)
         {
@@ -240,6 +310,10 @@ struct Record
             oss << serializePrefixModifiers();
 
         oss << prefix;
+
+        if (useModifiers)
+            oss << serializePrefixSuffixModifiers();
+
         if (cBrace!=0)
             oss << std::string(1, cBrace);
 
@@ -283,7 +357,7 @@ struct Record
     {
         std::size_t indend = 4; // prefix.size();
 
-        oss << serializePrefixModifiers() << prefix;
+        oss << serializePrefixModifiers() << prefix << serializePrefixSuffixModifiers();
 
         if (cBrace!=0)
         {
