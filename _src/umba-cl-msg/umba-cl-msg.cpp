@@ -61,11 +61,16 @@
 //
 #include "RecordStack.h"
 #include "RecordUtils.h"
+#include "TypeSubsts.h"
 //
 #include "parseClMessage.h"
 
+//
+#include "AppConfig.h"
 
 
+
+AppConfig appConfig;
 
 
 int unsafeMain(int argc, char* argv[]);
@@ -96,6 +101,15 @@ UMBA_APP_MAIN()
 int unsafeMain(int argc, char* argv[])
 {
 
+    // Пока захардкоживаем заполнение.
+    appConfig.addTypeModifierPrefix("const");
+    appConfig.addTypeModifierSuffix("&");
+    appConfig.addTypeModifierSuffix("&&");
+
+    appConfig.addTypeSubst("std::string" , "std::basic_string<char,std::char_traits<char>,std::allocator<char>>");
+    appConfig.addTypeSubst("std::wstring", "std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t>>");
+
+
     std::string text;
 
     if (umba::isDebuggerPresent())
@@ -122,12 +136,14 @@ int unsafeMain(int argc, char* argv[])
 
 
     Record r = parseClMessage(text);
+    r.extractModifiers(appConfig.typeModifiers);
+    substTypes(r, appConfig.typeSubsts);
 
     //r.print(std::cout);
     //print(std::cout, r.args);
     serialize(std::cout, r.args);
 
-    std::map<std::string, std::size_t> countMap;
+    RecordStringCountersMap countMap;
     findAllNestedTypes(r.args, countMap);
 
     //void findAllNestedTypes(const std::vector<Record> &vr, std::map<std::string, std::size_t> &countMap)

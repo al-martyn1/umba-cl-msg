@@ -1,14 +1,24 @@
 #pragma once
 
+#include "TypeModifiers.h"
+
 #include <sstream>
+
+#include "umba/string_plus.h"
+#include "umba/rule_of_five.h"
+
 
 struct Record
 {
-    std::string           prefix;
-    std::string           suffix;
-    char                  cBrace = 0; // Открывающая
-    std::vector<Record>   args;
-    bool                  quoted = false;
+    std::vector<std::string>  prefixModifiers;
+    std::vector<std::string>  suffixModifiers;
+
+    std::string               prefix;
+    std::string               suffix;
+
+    char                      cBrace = 0; // Открывающая
+    std::vector<Record>       args;
+    bool                      quoted = false;
 
     Record() {}
     // : prefix()
@@ -38,15 +48,32 @@ struct Record
     UMBA_RULE_OF_FIVE_COPY(Record, default, default);
     UMBA_RULE_OF_FIVE_MOVE(Record, default, default);
 
+    void replaceBase(const Record &r)
+    {
+        prefix = r.prefix;
+        suffix = r.suffix;
+    
+        cBrace = r.cBrace;
+        args   = r.args  ;
+    }
+
+
+
     bool empty() const
     {
-        return prefix.empty() && suffix.empty() && args.empty() && cBrace==0;
+        return prefixModifiers.empty() && suffixModifiers.empty() && prefix.empty() && suffix.empty() && args.empty() && cBrace==0;
     }
 
     void clear(bool q)
     {
         *this = Record();
         quoted = q;
+    }
+
+    void clearModifiers()
+    {
+        prefixModifiers.clear();
+        suffixModifiers.clear();
     }
 
     void append(char ch)
@@ -61,6 +88,56 @@ struct Record
     {
         return cBrace!=0;
     }
+
+    std::string serializePrefixModifiers() const
+    {
+        return umba::string::merge<std::string>(prefixModifiers, std::string() /* , [](auto s) { return s; } */ );
+    }
+
+    std::string serializeSuffixModifiers() const
+    {
+        return umba::string::merge<std::string>(suffixModifiers, std::string() /* , [](auto s) { return s; } */ );
+    }
+
+    //void extractModifiers(const std::unordered_set<std::string> &knownPrefixModifiers, const std::vector<std::string> &knownSuffixModifiers)
+    void extractModifiers(const TypeModifiers &typeModifiers)
+    {
+        umba::string::ltrim(prefix);
+
+        for(auto && kpm : typeModifiers.prefixModifiers)
+        {
+            if (umba::string::starts_with_and_strip(prefix, kpm))
+            {
+                prefixModifiers.emplace_back(kpm);
+                umba::string::ltrim(prefix);
+            }
+        }
+
+
+        umba::string::rtrim(suffix);
+
+        for(auto && ksm : typeModifiers.suffixModifiers)
+        {
+            if (umba::string::ends_with_and_strip(suffix, ksm))
+            {
+                auto modifier = ksm;
+                if (!suffix.empty() && suffix.back()==' ')
+                {
+                    modifier.insert(0, 1, ' ');    // Добавляем к модифиатору спереди
+                    suffix.erase(suffix.size()-1); // Удаляем у суффикса сзади
+                }
+                suffixModifiers.emplace_back(modifier);
+                umba::string::rtrim(suffix);
+            }
+        }
+
+        for(auto & a: args)
+        {
+            a.extractModifiers(typeModifiers);
+        }
+        
+    }
+
 
     int compare(const Record &other) const
     {
@@ -124,8 +201,8 @@ struct Record
 
     void trim()
     {
-        umba::string::trim(prefix);
-        umba::string::trim(suffix);
+        umba::string::ltrim(prefix);
+        umba::string::rtrim(suffix);
 
         std::vector<Record> argsCopy;
 
@@ -156,17 +233,16 @@ struct Record
         return r;
     }
 
-    // std::string           prefix;
-    // std::string           suffix;
-    // char                  cBrace = 0; // Открывающая
-    // std::vector<Record>   args;
-
     template<typename StreamType>
-    StreamType& serialize(StreamType &oss) const
+    StreamType& serialize(StreamType &oss, bool useModifiers=true) const
     {
+        if (useModifiers)
+            oss << serializePrefixModifiers();
+
         oss << prefix;
         if (cBrace!=0)
             oss << std::string(1, cBrace);
+
         std::size_t cnt=0;
         for(const auto &a : args)
         {
@@ -175,22 +251,31 @@ struct Record
             a.serialize(oss);
             ++cnt;
         }
+
         if (cBrace!=0)
             oss << std::string(1, getPair(cBrace));
+
         oss << suffix;
+
+        if (useModifiers)
+            oss << serializeSuffixModifiers();
 
         return oss;
     }
 
-    std::string serialize() const
+    std::string serialize(bool useModifiers=true) const
     {
         std::ostringstream oss;
-        serialize(oss);
+        serialize(oss, useModifiers);
         return oss.str();
     }
 
-        // std::ostringstream oss1;
-        // std::string s1 = serialize(oss1);
+    std::string serializeCleanType() const // Только тип без модификаторов
+    {
+        std::ostringstream oss;
+        serialize(oss, false);
+        return oss.str();
+    }
 
 
     template<typename StreamType>
@@ -198,7 +283,7 @@ struct Record
     {
         std::size_t indend = 4; // prefix.size();
 
-        oss << prefix;
+        oss << serializePrefixModifiers() << prefix;
 
         if (cBrace!=0)
         {
@@ -239,7 +324,7 @@ struct Record
             oss << std::string(1, getPair(cBrace)) << " ";
         }
 
-        oss << suffix ;
+        oss << suffix << serializeSuffixModifiers();
 
         return oss;
     }
