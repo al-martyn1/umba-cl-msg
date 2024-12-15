@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 // Сначала кладём в префикс
 // Если мы после закрывающей скобки, то кладём в суффикс
 
@@ -12,6 +14,10 @@
 // Если встречаем закрывающую скобку, то снимаем элемент со стека и кладём в список аргументов элемента на вершине,
 // не помещая на стек пустой элемент
 
+// Новая проблемка - суффикс может быть не только const или символом ccылки, но и вложенным типом или функцией/оператором.
+
+
+
 template<typename IterType>
 Record parseClMessage(IterType b, IterType e)
 {
@@ -19,6 +25,7 @@ Record parseClMessage(IterType b, IterType e)
     Record              curRecord;
     RecordStack         stack;
     std::size_t         quoteCount = 0;
+
 
     auto isQuoted = [&]()
     {
@@ -47,7 +54,7 @@ Record parseClMessage(IterType b, IterType e)
             // if (quoteCount&1)
             //     r.quoted = true;
             if (!r.empty())
-                stack.top().args.emplace_back(r);
+                stack.top().appendArg(r);
         }
 
 
@@ -72,26 +79,41 @@ Record parseClMessage(IterType b, IterType e)
 
         auto ch = *b;
 
+        if (ch=='\'')
+        {
+            ++quoteCount;
+            finalizeCurrentStack();
+            continue;
+        }
+
+
+        if (!isQuoted())
+        {
+            curRecord.append(ch);
+            continue;
+        }
+
+
         if (isOpenChar(ch))
         {
             // у нас всё клалось в "текущую" Record
 
-            if (curRecord.isSuffixMode()) // а что, если в текущей записи уже были скобки?
+            if (curRecord.isPrefixMode()) // скобок ещё не было (в самой curRecord или в nestedRecord, если она есть)
+            {
+                curRecord.setBrace(ch); // помечаем открывающей скобкой
+                stack.push(curRecord); // на стек
+                curRecord.clear(isQuoted()); // текущую запись очищаем
+            }
+            else
             {
                 // скобки уже были
                 // закидываем её либо как аргумент в вершине стека, либо в список records
                 if (stack.empty())
                     records.emplace_back(curRecord);
                 else
-                    stack.top().args.emplace_back(curRecord);
+                    stack.top().appendArg(curRecord);
 
                 curRecord.clear(isQuoted());
-            }
-            else // скобок ещё не было
-            {
-                curRecord.cBrace = ch; // помечаем открывающей скобкой
-                stack.push(curRecord); // на стек
-                curRecord.clear(isQuoted());     // текущую запись очищаем
             }
 
             continue;
@@ -104,7 +126,7 @@ Record parseClMessage(IterType b, IterType e)
             if (stack.empty())
                 records.emplace_back(curRecord);
             else
-                stack.top().args.emplace_back(curRecord);
+                stack.top().appendArg(curRecord);
 
             curRecord.clear(isQuoted());
 
@@ -113,21 +135,21 @@ Record parseClMessage(IterType b, IterType e)
         } // if (ch==',')
 
 
-        if (!stack.empty() && getPair(ch)==stack.top().cBrace) // Если закрывающая скобка была без открывающей - не обрабатываем как спец символ
+        if (!stack.empty() && getPair(ch)==stack.top().getBrace()) // Если закрывающая скобка была без открывающей - не обрабатываем как спец символ
         {
             // Парная закрывающая скобка
-            if (ch==')' && !stack.empty() && curRecord.empty())
+            if (ch==')' && !stack.empty() && curRecord.empty()) // тест на спец случай, когда две круглые скобки идут одна за другой
             {
                 curRecord = stack.top();
                 stack.pop();
-                curRecord.cBrace = 0; // Очищаем признак скобки
+                curRecord.clearBrace(); // Очищаем признак скобки
                 curRecord.append('(');
                 curRecord.append(')');
             }
             else
             {
                 if (!curRecord.empty())
-                    stack.top().args.emplace_back(curRecord);
+                    stack.top().appendArg(curRecord);
                 // curRecord.clear();
                 curRecord = stack.top();
                 stack.pop();
@@ -147,14 +169,15 @@ Record parseClMessage(IterType b, IterType e)
         } // if (!stack.empty() && getPair(ch)==stack.top().cBrace)
 
 
-        if (ch=='\'')
+        if (ch==':') // пришло двоеточие
         {
-            ++quoteCount;
-            finalizeCurrentStack();
-            continue;
-
-        } // if (ch=='\'')
-
+            if (!curRecord.isPrefixMode()) // кладём в суффикс?
+            {
+                curRecord.createNestedRecord();
+                curRecord.append(ch);
+                continue;
+            }
+        }
 
         curRecord.append(ch);
 

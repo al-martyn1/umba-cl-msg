@@ -104,20 +104,15 @@ set(COMMON_LIBS encoding::encoding marty_cpp::marty_cpp sfmt::sfmt umba::umba)
 
 
 add_executable(umba-cl-msg "${SRC_ROOT}/umba-cl-msg/umba-cl-msg.cpp" "${headers}")
-umba_add_target_options(umba-cl-msg "CONSOLE" "BIGOBJ" "UTF8" ) # "PEDANTIC" "WERR"
+umba_add_target_options(umba-cl-msg "CONSOLE" "BIGOBJ" "UTF8" "PEDANTIC" "WERR") # "PEDANTIC" "WERR"
 target_link_libraries(umba-cl-msg PRIVATE "${PLATFORM_LIBS}" "${COMMON_LIBS}")
 
 
-#https://cmake.org/cmake/help/latest/manual/cmake-buildsystem.7.html#target-usage-requirements
-
-
-#target_compile_options(Framework PUBLIC -Wa,-mbig-obj)
-#-flto
-
+add_executable(test-001 "${SRC_ROOT}/umba-cl-msg/test-001.cpp" "${headers}")
+umba_add_target_options(test-001 "CONSOLE" "BIGOBJ" "UTF8" "PEDANTIC" "WERR") # "PEDANTIC" "WERR"
+target_link_libraries(test-001 PRIVATE "${PLATFORM_LIBS}" "${COMMON_LIBS}")
+# target_compile_definitions(test-001 PRIVATE "DETAILED_TYPESUBSTS" "DETAILED_AUTOREPLACE")
 
 
 
-#include(CPack)
-#set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-#set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 

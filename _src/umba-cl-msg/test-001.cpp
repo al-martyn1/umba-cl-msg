@@ -128,6 +128,8 @@ int unsafeMain(int argc, char* argv[])
         text.append(1, '\n');
     }
 
+    std::cout << text << "\n---------\n";
+
     Record r = parseClMessage(text);
 
     //------------------------------
@@ -147,19 +149,29 @@ int unsafeMain(int argc, char* argv[])
     // r.print(std::cout);
     // print(std::cout, r.args);
     // serialize(std::cout, r.args);
-    // serialize(std::cout, r);
+    serialize(std::cout, r);
 
     RecordStringCountersMap countMap;
     findAllTypeStrings(r.getArgs(), countMap);
+
+    //void findAllTypeStrings(const std::vector<Record> &vr, std::map<std::string, std::size_t> &countMap)
+
+    std::cout << "\n---------\nFound types:\n";
+
+    for(auto &&cmit : countMap)
+    {
+        std::cout << cmit.first << " - " << cmit.second << "\n";
+    }
+
+    std::cout << "\n---------\nAuto substs:\n";
 
     std::vector<ReplacePair> replaces;
     NameGenerator nameGen;
     performAutoSubsts(r, replaces, nameGen);
 
-    //r.print(std::cout);
-    print(std::cout, r);
+    serialize(std::cout, r.getArgs());
 
-    std::cout << "---\nWith:\n";
+    std::cout << "With:\n";
     for(auto &&rpls : replaces)
     {
         std::cout << rpls.replaceWith << " - " << rpls.typeString << "\n";

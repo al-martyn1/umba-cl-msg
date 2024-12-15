@@ -8,6 +8,7 @@
 
 struct NameGenerator
 {
+    // std::vector<std::string>                        names   ;
     std::unordered_map<std::string, std::size_t>    counters;
 
     std::string generateName(const std::string &baseName)
@@ -17,3 +18,4 @@ struct NameGenerator
     }
 
 }; // struct NameGenerator
+

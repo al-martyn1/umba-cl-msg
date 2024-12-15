@@ -6,13 +6,20 @@
 
 #include "umba/string_plus.h"
 #include "umba/rule_of_five.h"
+#include "umba/assert.h"
+
+//
+#include "marty_cpp/marty_cpp.h"
+
+//----------------------------------------------------------------------------
 
 
+
+//----------------------------------------------------------------------------
 struct Record
 {
-    std::vector<std::string>  prefixModifiers;
-    std::vector<std::string>  psModifiers    ; // prefix-suffix modifiers
-    std::vector<std::string>  suffixModifiers;
+
+protected:
 
     std::string               prefix;
     std::string               suffix;
@@ -20,6 +27,15 @@ struct Record
     char                      cBrace = 0; // Открывающая
     std::vector<Record>       args;
     bool                      quoted = false;
+
+    std::shared_ptr<Record>   nestedRecord   ; // для вложенных типов и функций/операторов
+
+    std::vector<std::string>  prefixModifiers;
+    std::vector<std::string>  psModifiers    ; // prefix-suffix modifiers
+    std::vector<std::string>  suffixModifiers;
+
+
+public:
 
     Record() {}
     // : prefix()
@@ -49,6 +65,110 @@ struct Record
     UMBA_RULE_OF_FIVE_COPY(Record, default, default);
     UMBA_RULE_OF_FIVE_MOVE(Record, default, default);
 
+    bool hasNested() const
+    {
+        return !!nestedRecord;
+    }
+
+    Record& getNested()
+    {
+        UMBA_ASSERT(nestedRecord);
+        return *nestedRecord;
+    }
+
+    const Record& getNested() const
+    {
+        UMBA_ASSERT(nestedRecord);
+        return *nestedRecord;
+    }
+
+    void setBrace(char ch)
+    {
+        if (nestedRecord)
+            return nestedRecord->setBrace(ch);
+
+        UMBA_ASSERT(cBrace==0);
+        cBrace = ch;
+    }
+
+    void clrBrace()
+    {
+        if (nestedRecord)
+            return nestedRecord->clrBrace();
+
+        cBrace = 0;
+    }
+
+    bool isTypeList() const
+    {
+        return cBrace=='<';
+    }
+
+    bool isParamList() const
+    {
+        return cBrace=='(';
+    }
+
+    bool isSimpleType() const
+    {
+        return args.empty() && !nestedRecord;
+    }
+
+    bool isQuoted() const
+    {
+        // if (nestedRecord)
+        //     return nestedRecord->isQuoted();
+        return quoted;
+    }
+
+    void setQuoted(bool q=true)
+    {
+        if (nestedRecord)
+            nestedRecord->setQuoted(q);
+        quoted = q;
+    }
+
+    std::vector<Record>& getArgs()
+    {
+        // if (nestedRecord)
+        //     return nestedRecord->getArgs();
+        return args;
+    }
+
+    const std::vector<Record>& getArgs() const
+    {
+        // if (nestedRecord)
+        //     return nestedRecord->getArgs();
+        return args;
+    }
+
+    void createNestedRecord()
+    {
+        if (nestedRecord)
+        {
+            nestedRecord->createNestedRecord();
+        }
+        else
+        {
+            nestedRecord = std::make_shared<Record>();
+            nestedRecord->quoted = true;
+        }
+    }
+
+    char getBrace() const
+    {
+        if (nestedRecord)
+            return nestedRecord->getBrace();
+        return cBrace;
+    }
+
+    void clearBrace()
+    {
+        if (nestedRecord)
+            return nestedRecord->clearBrace();
+        cBrace = 0;
+    }
+
     void replaceBase(const Record &r)
     {
         prefix = r.prefix;
@@ -56,9 +176,27 @@ struct Record
     
         cBrace = r.cBrace;
         args   = r.args  ;
+
+        if (nestedRecord && r.nestedRecord)
+        {
+            nestedRecord->replaceBase(*r.nestedRecord);
+        }
+        else
+        {
+            nestedRecord.reset();
+        }
     }
 
-    bool hasBrace(char braceCh, bool checkSelf=true, bool checkArgs=true) const
+    void replaceBase(const std::string &str)
+    {
+        prefix = str;
+        cBrace = 0;
+        suffix.clear();
+        args.clear();
+        nestedRecord.reset();
+    }
+
+    bool hasBrace(char braceCh, bool checkSelf=true, bool checkArgs=true, bool checkNested=true) const
     {
         if (isPairedChar(braceCh) && isCloseChar(braceCh))
             braceCh = getPair(braceCh);
@@ -69,18 +207,38 @@ struct Record
                 return true;
         }
 
+        if (checkNested)
+        {
+            if (nestedRecord)
+            {
+                if (nestedRecord->hasBrace(braceCh, true /* checkSelf */, checkArgs, checkNested))
+                    return true;
+            }
+        }
+
         if (checkArgs)
         {
             for(auto &&a : args)
             {
-                if (a.hasBrace(braceCh, true, checkArgs /* de facto - true */ ))
+                if (a.hasBrace(braceCh, true /* checkSelf */, checkArgs /* de facto - true */, checkNested ))
                     return true;
             }
         }
+
+        return false;
     }
 
     bool needAutoSubst(std::size_t templateTypesMaxLen=48, std::size_t exactTypesMaxLen=48) const
     {
+        UMBA_USED(templateTypesMaxLen);
+        UMBA_USED(exactTypesMaxLen);
+
+        if (!quoted)
+            return false;
+
+        if (isSimpleType())
+            return false;
+
         if (hasBrace('(', true, true)) // выражения с круглыми скобками не оптимизируем
             return false;
 
@@ -99,18 +257,55 @@ struct Record
             //     return true;
         }
 
-        return true;
+        return false;
+    }
+
+    std::string getNameForAutoRenameFromPrefix() const
+    {
+        auto pos = prefix.rfind(':');
+        if (pos==prefix.npos)
+            return marty_cpp::filterName(prefix);
+
+        return marty_cpp::filterName(std::string(prefix, pos+1, prefix.npos));
+    }
+
+    std::string getNameForAutoRenameFromSuffix() const
+    {
+        if (nestedRecord)
+            return nestedRecord->getNameForAutoRenameFromPrefix();
+
+        auto pos = suffix.rfind(':');
+        if (pos==suffix.npos)
+            return marty_cpp::filterName(suffix);
+         
+        return marty_cpp::filterName(std::string(suffix, pos+1, suffix.npos));
+    }
+
+    std::string getNameForAutoRename() const
+    {
+        if (nestedRecord && !nestedRecord->isParamList())
+            return getNameForAutoRenameFromSuffix();
+
+        if (prefix.empty())
+            return getNameForAutoRenameFromSuffix();
+
+        if (suffix.rfind(':')!=suffix.npos)
+            return getNameForAutoRenameFromSuffix();
+
+        return getNameForAutoRenameFromPrefix();
     }
 
     bool empty() const
     {
-        return prefixModifiers.empty() && psModifiers.empty() && suffixModifiers.empty() && prefix.empty() && suffix.empty() && args.empty() && cBrace==0;
+        bool nestedEmpty = nestedRecord ? nestedRecord->empty() : true;
+        return nestedEmpty && prefixModifiers.empty() && psModifiers.empty() && suffixModifiers.empty() && prefix.empty() && suffix.empty() && args.empty() && cBrace==0;
     }
 
     void clear(bool q)
     {
         *this = Record();
         quoted = q;
+        nestedRecord.reset();
     }
 
     void clearModifiers()
@@ -122,15 +317,28 @@ struct Record
 
     void append(char ch)
     {
-        if (cBrace==0)
+        if (nestedRecord)
+            nestedRecord->append(ch);
+        else if (cBrace==0)
             prefix.append(1, ch);
         else
             suffix.append(1, ch);
     }
 
-    bool isSuffixMode() const
+    void appendArg(const Record &r)
     {
-        return cBrace!=0;
+        if (nestedRecord)
+            nestedRecord->args.emplace_back(r);
+        else
+            args.emplace_back(r);
+    }
+
+    bool isPrefixMode() const
+    {
+        if (nestedRecord)
+           return nestedRecord->isPrefixMode();
+
+        return cBrace==0;
     }
 
     std::string serializePrefixModifiers() const
@@ -153,6 +361,9 @@ struct Record
     // psModifiers
     void extractModifiers(const TypeModifiers &typeModifiers)
     {
+        if (nestedRecord)
+            nestedRecord->extractModifiers(typeModifiers);
+
         umba::string::ltrim(prefix);
 
         for(auto && kpm : typeModifiers.prefixModifiers)
@@ -334,6 +545,9 @@ struct Record
         if (useModifiers)
             oss << serializeSuffixModifiers();
 
+        if (nestedRecord)
+            nestedRecord->serialize(oss, useModifiers);
+
         return oss;
     }
 
@@ -350,7 +564,6 @@ struct Record
         serialize(oss, false);
         return oss.str();
     }
-
 
     template<typename StreamType>
     StreamType& print(StreamType &oss, std::size_t indendBase=0) const
@@ -400,28 +613,54 @@ struct Record
 
         oss << suffix << serializeSuffixModifiers();
 
+        if (nestedRecord)
+            nestedRecord->print(oss, indendBase+indend);
+
         return oss;
     }
 
-
 }; // struct Record
 
+//----------------------------------------------------------------------------
 
+
+
+//----------------------------------------------------------------------------
 template<typename StreamType>
 StreamType& print(StreamType &oss, const std::vector<Record> &vr)
 {
-    bool prevQuoted = false;
-    for(const auto r : vr)
+    // bool prevQuoted = false;
+    for(const auto &r : vr)
         r.print(oss, 0) << "\n";
     return oss;
 }
 
+//----------------------------------------------------------------------------
 template<typename StreamType>
 StreamType& serialize(StreamType &oss, const std::vector<Record> &vr)
 {
-    bool prevQuoted = false;
-    for(const auto r : vr)
+    // bool prevQuoted = false;
+    for(const auto &r : vr)
         r.serialize(oss) << "\n";
     return oss;
 }
+
+//----------------------------------------------------------------------------
+template<typename StreamType>
+StreamType& print(StreamType &oss, const Record &r)
+{
+    return print(oss, r.getArgs());
+}
+
+//----------------------------------------------------------------------------
+template<typename StreamType>
+StreamType& serialize(StreamType &oss, const Record &r)
+{
+    return serialize(oss, r.getArgs());
+}
+
+//----------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------
+
 
