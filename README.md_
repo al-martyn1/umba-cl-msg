@@ -4,7 +4,7 @@ Title: Umba-cl-msg: парсер собщений компилятора (пок
 
 Исходное сообщение:
 
-#!insert{quote} doc/sample_cl_msg.txt
+#!insert{quote,no-pre} doc/sample_cl_msg.txt
 
 Обработанное сообщение:
 #!insert{quote} doc/sample_cl_msg_processed.txt
