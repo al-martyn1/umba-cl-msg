@@ -1,28 +1,21 @@
-@if exist "%~dp0\set_sln.bat"    @call "%~dp0\set_sln.bat"
-
-@rem %UMBA_TOOLS% - eg F:\umba-tools
-
-@if "%UMBA_TOOLS%"=="" goto UMBA_TOOLS_VAR_NOT_SET
-@goto UMBA_TOOLS_VAR_IS_SET
-
-:UMBA_TOOLS_VAR_NOT_SET
-@echo UMBA_TOOLS environmetnt variable is not set
+@if exist "%~dp0\set_sln.bat"  @call "%~dp0\set_sln.bat"
+@if exist "%~dp0\set_sln_exes.bat"  @call "%~dp0\set_sln_exes.bat"
+@set DEPLOY_BINS=%SLN_EXES%
+@if "%DEPLOY_BINS%"=="" @set DEPLOY_BINS=%SLN%
+@rem Add extra bins here
+@set DEPLOY_BINS=%DEPLOY_BINS%
+@rem
+@if "%DEPLOY_ROOT%"==""   @set DEPLOY_ROOT=%UMBA_TOOLS%
+@rem
+@if "%DEPLOY_ROOT%"=="" goto DEPLOY_ROOT_NOT_SET
+@goto DEPLOY_ROOT_IS_SET
+:DEPLOY_ROOT_NOT_SET
+@echo DEPLOY_ROOT environment variable is not set, UMBA_TOOLS not set too
 @exit /B 1
+:DEPLOY_ROOT_IS_SET
+@rem
+@call "%~dp0.bat\deploy_impl.bat"
+@rem
+@rem Add extra deploy code here
 
-:UMBA_TOOLS_VAR_IS_SET
-
-@call "%~dp0\.bat\setup_out_root_paths.bat"
-
-@if not exist "%UMBA_TOOLS%\bin"    mkdir "%UMBA_TOOLS%\bin"
-@if not exist "%UMBA_TOOLS%\conf"   mkdir "%UMBA_TOOLS%\conf"
-
-@IF "%OUTROOTPATH%"=="" @(
-    @echo OUTROOTPATH not found
-    exit /B 1
-)
-
-copy /Y "%OUTROOTPATH%\Release\%SLN%.exe"         "%UMBA_TOOLS%\bin\"
-
-@if exist _distr_conf @xcopy /Y /S /E /I /F /R "%~dp0\_distr_conf\conf\*"               "%UMBA_TOOLS%\conf"
-
-@rem umba-brief-scanner --help > help.txt
+@rem %SLN% --help > help.txt
