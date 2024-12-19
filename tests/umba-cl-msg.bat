@@ -9,3 +9,6 @@
 "%TEST%" < msg5.txt > umba-cl-msg_msg5.cpp
 "%TEST%" < msg6.txt > umba-cl-msg_msg6.cpp
 "%TEST%" < msg7.txt > umba-cl-msg_msg7.cpp
+
+"%TEST%" < msg2_1.txt > msg2_1.cpp
+"%TEST%" < msg2_2.txt > msg2_2.cpp
