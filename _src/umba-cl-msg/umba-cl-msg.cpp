@@ -137,8 +137,12 @@ int unsafeMain(int argc, char* argv[])
     appConfig.addTypeModifierSuffix("&");
     appConfig.addTypeModifierSuffix("&&");
      
+    // MSVC
     appConfig.addTypeSubst("std::string" , "std::basic_string<char,std::char_traits<char>,std::allocator<char>>");
     appConfig.addTypeSubst("std::wstring", "std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t>>");
+    // GCC
+    appConfig.addTypeSubst("std::string" , "std::__cxx11::basic_string<char>");
+    
     //------------------------------
 
     r.extractModifiers(appConfig.typeModifiers);
@@ -159,10 +163,10 @@ int unsafeMain(int argc, char* argv[])
     //r.print(std::cout);
     print(std::cout, r);
 
-    std::cout << "---\nWith:\n";
+    std::cout << "---\n\nWith:\n\n";
     for(auto &&rpls : replaces)
     {
-        std::cout << rpls.replaceWith << " - " << rpls.typeString << "\n";
+        std::cout << rpls.replaceWith << " - " << rpls.typeString << "\n\n";
     }
 
     return 0;
