@@ -29,6 +29,14 @@ struct AppConfig
         return typeSubsts.add(substType, orgType);
     }
 
+    bool addTypeSubst(const std::string &substPair)
+    {
+        std::string f, s;
+        if (!umba::string_plus::split_to_pair(substPair, f, s, '='))
+            return false;
+        return addTypeSubst(f, s);
+    }
+
     bool addTypeModifierPrefix(const std::string &m)
     {
         return typeModifiers.addPrefixModifier(m);
