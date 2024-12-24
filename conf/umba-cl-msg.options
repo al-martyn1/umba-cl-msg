@@ -6,11 +6,10 @@
 --type-subst=std::string=std::__cxx11::basic_string<char>
 
 
+# Common
+--type-modifier-prefix=const
 
-
-
-
-
-
-
+#
+--type-modifier-suffix=&&
+--type-modifier-suffix=&
 

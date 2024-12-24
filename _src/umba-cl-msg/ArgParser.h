@@ -260,6 +260,46 @@ int operator()( const StringType                                &a           //!
             return 0;
         }
 
+        else if ( opt.setParam("TYPE=ORG_TYPE",umba::command_line::OptionType::optString)
+               || opt.isOption("type-modifier-prefix")
+               || opt.setDescription("Add type modifier prefix"))
+        {
+            if (argsParser.hasHelpOption) return 0;
+
+            if (!opt.getParamValue(strVal,errMsg))
+            {
+                LOG_ERR<<errMsg<<"\n";
+                return -1;
+            }
+
+            if (!appConfig.addTypeModifierPrefix(strVal))
+            {
+                LOG_ERR<<"invalid value (--type-modifier-prefix)"<<"\n";
+            }
+
+            return 0;
+        }
+
+        else if ( opt.setParam("TYPE=ORG_TYPE",umba::command_line::OptionType::optString)
+               || opt.isOption("type-modifier-suffix")
+               || opt.setDescription("Add type modifier suffix"))
+        {
+            if (argsParser.hasHelpOption) return 0;
+
+            if (!opt.getParamValue(strVal,errMsg))
+            {
+                LOG_ERR<<errMsg<<"\n";
+                return -1;
+            }
+
+            if (!appConfig.addTypeModifierSuffix(strVal))
+            {
+                LOG_ERR<<"invalid value (--type-modifier-suffix)"<<"\n";
+            }
+
+            return 0;
+        }
+
         #if 0
         else if ( opt.setParam("?MODE",true)
                || opt.isOption("verbose")

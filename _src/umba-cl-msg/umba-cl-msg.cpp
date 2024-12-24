@@ -236,9 +236,9 @@ int unsafeMain(int argc, char* argv[])
     //------------------------------
     // Пока захардкоживаем заполнение.
     // Не раньше, чем распарсили главный текст
-    appConfig.addTypeModifierPrefix("const");
-    appConfig.addTypeModifierSuffix("&");
-    appConfig.addTypeModifierSuffix("&&");
+    // appConfig.addTypeModifierPrefix("const");
+    // appConfig.addTypeModifierSuffix("&");
+    // appConfig.addTypeModifierSuffix("&&");
      
     // // MSVC
     // appConfig.addTypeSubst("std::string" , "std::basic_string<char,std::char_traits<char>,std::allocator<char>>");
