@@ -1,0 +1,13 @@
+Знакомство с WebAssembly - https://habr.com/ru/articles/342180/
+WasmFiddle - https://wasdk.github.io/WasmFiddle/
+awesome-wasm - https://github.com/mbasso/awesome-wasm
+Как скрестить Clion, Emscripten и Cmake - https://habr.com/ru/articles/522284/
+WASM Debugging with Emscripten and VSCode - https://floooh.github.io/2023/11/11/emscripten-ide.html
+
+
+Загружаем отсюда: http://emscripten.org/
+Распаковываем в отдельную папку, в моём случае C:\bin\emsdk
+Открываем командную строку, переходим в папку emsdk и выполняем три команды:
+emsdk update
+emsdk install latest
+emsdk activate latest
