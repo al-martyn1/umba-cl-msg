@@ -4,6 +4,13 @@ awesome-wasm - https://github.com/mbasso/awesome-wasm
 Как скрестить Clion, Emscripten и Cmake - https://habr.com/ru/articles/522284/
 WASM Debugging with Emscripten and VSCode - https://floooh.github.io/2023/11/11/emscripten-ide.html
 
+https://www.google.com/search?q=%D0%BA%D0%B0%D0%BA+%D1%81%D0%BE%D0%B1%D1%80%D0%B0%D1%82%D1%8C+C%2B%2B+webassembly+%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5&sca_esv=d1299addba882a66&ei=_t1qZ72jJ_yywPAP6_b5wA0&ved=0ahUKEwi9mvvO5sCKAxV8GRAIHWt7HtgQ4dUDCBA&uact=5&oq=%D0%BA%D0%B0%D0%BA+%D1%81%D0%BE%D0%B1%D1%80%D0%B0%D1%82%D1%8C+C%2B%2B+webassembly+%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5&gs_lp=Egxnd3Mtd2l6LXNlcnAiOtC60LDQuiDRgdC-0LHRgNCw0YLRjCBDKysgd2ViYXNzZW1ibHkg0L_RgNC40LvQvtC20LXQvdC40LUyBRAAGO8FMggQABiABBiiBDIFEAAY7wVIqyJQ1RZY9BpwAHgCkAEAmAF8oAG_A6oBAzAuNLgBA8gBAPgBAZgCBaACygPCAgQQABhHmAMA4gMFEgExIECIBgGQBgiSBwMxLjSgB80L&sclient=gws-wiz-serp
+Компиляция кода C/C++ в WebAssembly - https://developer.mozilla.org/ru/docs/WebAssembly/C_to_Wasm
+Создание модуля WebAssembly с помощью Emscripten, AssemblyScript и Rust - https://habr.com/ru/articles/718874/
+Компилируем С\С++ код в WebAssembly - https://habr.com/ru/companies/infopulse/articles/273957/
+WebAssembly Hello World на C/C++ - https://rdevelab.ru/blog/web-assembly/post/example-wasm-hello-world
+https://metanit.com/cpp/webassembly/1.2.php
+
 
 Загружаем отсюда: http://emscripten.org/
 Распаковываем в отдельную папку, в моём случае C:\bin\emsdk
@@ -11,3 +18,5 @@ WASM Debugging with Emscripten and VSCode - https://floooh.github.io/2023/11/11/
 emsdk update
 emsdk install latest
 emsdk activate latest
+
+
