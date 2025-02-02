@@ -211,8 +211,22 @@ int unsafeMain(int argc, char* argv[])
 
     if (umba::isDebuggerPresent())
     {
-        text = 
-        #include "msg1.h"
+        std::string cwd;
+        std::string rootPath = umba::shellapi::getDebugAppRootFolder(&cwd);
+        std::cout << "App Root Path: " << rootPath << "\n";
+        std::cout << "Working Dir  : " << cwd << "\n";
+
+        // std::string inputFilename = rootPath + "/tests/msg2_4.txt";
+        // std::cout << "Processing   : '" << inputFilename << "'\n";
+        // if (!umba::filesys::readFile(inputFilename, text))
+        // {
+        //     std::cout << "Failed to read input file\n";
+        //     return 1;
+        // }
+
+        // text = 
+        // #include "msg1.h"
+
     }
     else
     {
