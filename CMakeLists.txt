@@ -95,7 +95,7 @@ endif()
 
 
 # Configure libraries here
-set(COMMON_LIBS encoding::encoding marty_cpp::marty_cpp sfmt::sfmt umba::umba)
+set(COMMON_LIBS encoding::encoding marty::cpp sfmt::sfmt umba::umba)
 # set(PUGIXML_LIB pugixml::pugixml marty_pugixml::marty_pugixml)
 # set(JSON_YAML_LIB nlohmann_json::nlohmann_json yaml-cpp::yaml-cpp)
 
